@@ -1,4 +1,5 @@
-import api from "../../api/api"
+import { useDispatch } from "react-redux";
+import api from "../../api/api";
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try{
@@ -47,48 +48,59 @@ export const fetchCategories = (queryString) => async (dispatch) => {
     }
 }
 
-export const addToCart = (data, quantity=1, toast) => (dispatch, getState) => {
+export const addToCart = (data, quantity=1, toast) => async (dispatch, getState) => {
     const {products} = getState().products;
     const getProduct = products.find((item) => item.productId === data.productId);
+    const listCartItem = localStorage.getItem('cartItemList') ? JSON.parse(localStorage.getItem('cartItemList')) : [];
+    if(listCartItem.some((product) => product.productId === getProduct.productId)){
+        toast.error('This product had already in cart!')
+        return;
+    }
     const isQuantityExist = getProduct.quantity >= quantity;
-    console.log("quantity", quantity)
     if(isQuantityExist){
-        dispatch({type: "ADD_CART", payload: {...data, quantity: quantity}});
-        toast.success(`${data?.productName} added tho the cart`);
-        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+        try{
+            toast.success(`${data?.productName} added tho the cart`);
+            const productToAdd = { ...getProduct, quantity };
+            const updatedCart = [...listCartItem, productToAdd];
+            localStorage.setItem('cartItemList', JSON.stringify(updatedCart));
+            dispatch({type: 'ADD_CART', payload: updatedCart});
+            const reponse = await api.post(`/cart/products/${data.productId}/quantity/${quantity}`);
+        }catch(e){
+            toast.error("error when add to cart", e);
+        }
+        
+        
     }
     else{
         toast.error("Out of stock")
     }
 };
 
-export const increaseCartQuantity = (data, toast, currentQuantity, setCurrentQuantity) => (dispatch, getState) => {
-    console.log("full state", getState())
+export const increaseCartQuantity = (data, toast, currentQuantity, setCurrentQuantity) => async (dispatch, getState) => {
     const {products} = getState().products;
+    console.log('products', products)
     const getProduct = products.find((item) => item.productId === data.productId);
-
+    const listCartItem = JSON.parse(localStorage.getItem('cartItemList'));
     const isQuantityExist = getProduct.quantity >= currentQuantity + 1;
 
     if(isQuantityExist){
         const newQuantiy = currentQuantity + 1;
         setCurrentQuantity(newQuantiy);
-        dispatch({
-            type: "ADD_CART",
-            payload: {...data, quantity: newQuantiy}
+        listCartItem.map((product) => {
+            if(getProduct.productId === product.productId){
+                product.quantity = newQuantiy;
+            }
         });
-        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+        localStorage.setItem('cartItemList', JSON.stringify(listCartItem));
+        const response = await api.post(`/card/products/${getProduct.productId}/quantity/add`);
     }
     else{
         toast.error("Quantity reach to limit")
     }
 }
 
-export const descreaseCartQuantity = (data, newQuantiy, ) => (dispatch, getState) =>{
-    dispatch({
-        type: "ADD_CART",
-        payload: {...data, quantity: newQuantiy},
-    });
-    localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart))
+export const descreaseCartQuantity = async (productId) =>{
+    const response = await api.post(`/card/products/${productId}/quantity/delete`)
 }
 
 export const authenticateSignInUser = (sendData, toast, reset, navigate, setLoader) => async (dispatch) =>{
@@ -97,6 +109,7 @@ export const authenticateSignInUser = (sendData, toast, reset, navigate, setLoad
         const {data} = await api.post("/auth/signin", sendData)
         dispatch({type: "LOGIN_USER", payload: data});
         localStorage.setItem("auth", JSON.stringify(data));
+        fetchCart();
         reset()
         toast.success("Login success");
         navigate("/")
@@ -123,8 +136,33 @@ export const registerNewUser = (sendData, toast, reset, navigate, setLoader) => 
     }
 }
 
+export const fetchCart = async () => {
+    try{
+        console.log('fetch cart success');
+        const response = await api.get('/card/user');
+        localStorage.setItem('cartId', response.data.cartId);
+        localStorage.setItem('cartItemList', JSON.stringify(response.data.products))
+        return await response.data;
+    }catch(error){
+        console.log(error);
+    }
+    
+}
+
+export const deleteProductFromCart = async (productId) => {
+    const cartId = localStorage.getItem('cartId');
+    try{
+        const listCartItem = JSON.parse(localStorage.getItem('cartItemList'));
+        const newListCartItem = listCartItem.filter(product => product.productId !== productId);
+        localStorage.setItem('cartItemList', JSON.stringify(newListCartItem));
+        const response = await api.delete(`/carts/${cartId}/product/${productId}`);
+    }catch(error){
+        console.log("error from delete product", error)
+    }
+}
+
 export const logoutUser = (navigate) => (dispatch) => {
     dispatch({type: "LOG_OUT"})
-    localStorage.removeItem("auth");
+    localStorage.clear()
     navigate("/login")
 };

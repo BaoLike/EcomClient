@@ -1,5 +1,5 @@
 import { Badge } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaShoppingCart, FaSignInAlt, FaStore } from "react-icons/fa";
 import { RxDragHandleHorizontal } from "react-icons/rx";
 import { useSelector } from "react-redux";
@@ -10,11 +10,16 @@ const Navbar = () => {
     const path = useLocation().pathname;
     const [navbarOpen, setNavbarOpen] = useState(false);
     let user;
+    let quantityItemCart = useSelector((state) => state.carts.quantityCartItems);
+
+    useEffect(()=>{
+        console.log('quantity cart item', quantityItemCart)
+    })
     if(localStorage.getItem("auth") !== null){
         user = JSON.parse(localStorage.getItem("auth"))
     }
     else{
-        user = {id: null}
+        user = {id: null, roles: []};
     }
 
     return (
@@ -56,12 +61,13 @@ const Navbar = () => {
                     </Link>
                 </li>
 
-                <li className="font-[500] transition-all duration-150">
+                {!user["roles"].includes("ROLE_ADMIN") ? (
+                    <li className="font-[500] transition-all duration-150">
                     <Link className={`${path === "/cart" ? "text-white font-semibold" : "text-gray-200"}`}
                           to="/cart">
                         <Badge 
                             showZero
-                            badgeContent={0}
+                            badgeContent={quantityItemCart}
                             color="primary"
                             overlap="circular"
                             anchorOrigin={{vertical: "top", horizontal: "right",}}
@@ -69,7 +75,9 @@ const Navbar = () => {
                             <FaShoppingCart size={25}/>
                         </Badge>
                     </Link>
-                </li>
+                    </li>
+                ) : (<li></li>)}
+                
 
 
                 {(user && user.id) ? (

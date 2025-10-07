@@ -5,10 +5,13 @@ import { CartReducer } from "./CartReducer";
 import { AuthReducer } from "./AuthReducer";
 
 const user = localStorage.getItem("auth") ? JSON.parse(localStorage.getItem("auth")) : [];
-const cartItems = localStorage.getItem("cartItems") ? JSON.parse(localStorage.getItem("cartItems")) : [];
+const cartItems = localStorage.getItem("cartItemList") ? JSON.parse(localStorage.getItem("cartItemList")) : [];
 const initialState = {
     auth: {user: user},
-    carts: {cart: cartItems},
+    carts: {
+        cart: cartItems, 
+        quantityCartItems: cartItems.length,
+    },
 }
 
 const store = configureStore({

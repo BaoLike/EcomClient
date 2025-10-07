@@ -2,18 +2,53 @@ import { MdArrowBack, MdShoppingCart } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import ItemContent from "./ItemContent";
-
+import { useEffect, useState } from "react";
+import { fetchCart } from "../../store/action";
+import { FaShoppingBag, FaShoppingCart } from "react-icons/fa";
 const Cart = () => {
-    const dispatch = useDispatch();
-    const {cart} = useSelector((state) => state.carts);
-    const newCart = {...cart};
+    const getTotalPrice = () => {
+        const data = localStorage.getItem('cartItemList') ? JSON.parse(localStorage.getItem('cartItemList')) : []
+        let totalPrice = 0;
+        data.forEach((item) => totalPrice += item.specialPrice*item.quantity);
+        return totalPrice;
+    }
+    const dataFromLocalStorage = JSON.parse(localStorage.getItem('cartItemList'));
 
-    newCart.totalPrice = cart?.reduce(
-        (acc, curr) => acc * Number(curr?.specialPrice) * Number(curr?.quantity), 0 
-    );
+    const [totalPrice, updateTotalPrice] =useState(getTotalPrice());
+    const [cart, updateCart] = useState(dataFromLocalStorage);
+    const dispatch = useDispatch();
+    
+
+
+    
+
+
+    const handleStatusCart = () => {
+        const newListCart =  JSON.parse(localStorage.getItem('cartItemList'));
+        const newTotalPrice = getTotalPrice();
+
+        updateCart(newListCart);
+        updateTotalPrice(newTotalPrice);
+        return newListCart;
+    }
 
     if(!cart || cart.length === 0 ){
-        return <h1>Cart is empty</h1>
+        return (
+            <div className="lg:px-14 sm:px-8 px-4 py-10">
+                <div className="flex flex-col items-center mb-12">
+                    <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+                        <MdShoppingCart size={36} className="text-gray-700"/>
+                        Your cart
+                    </h1>
+
+                    <p className="text-lg text-gray-600 mt-2">Your cart is empty! Go shoping now</p>
+                    <Link to="/products"><button className={`bg-blue-500 opacity-100 hover:bg-600
+                                        text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-50 mt-10 flex  justify-center`}>
+                                            <FaShoppingCart className="mr-2"/>
+                                            Go To Product Store
+                                        </button></Link>
+                </div>
+            </div>)
     }
 
     return (
@@ -47,7 +82,7 @@ const Cart = () => {
 
 
             <div>
-                {cart && cart.length > 0 && cart.map((item, i) => <ItemContent key={i} {...item}/>)}
+                {cart && cart.length > 0 && cart.map((item, i) => <ItemContent key={i} {...item} handleUpdateCartItem={handleStatusCart}/>)}
             </div>
 
             <div className="border-t-[1.5px] border-slate-200 py-4 flex sm:flex-row sm:px-0 px-2 flex-col sm:justify-between gap-4">
@@ -55,7 +90,7 @@ const Cart = () => {
                 <div className="flex text-sm gap-1 flex-col">
                     <div className="flex justify-between w-full md:text-lg text-sm font-semibold">
                         <span>Subtotal</span>
-                        <span>400.000</span>
+                        <span>{totalPrice}</span>
                     </div>
 
                     <p className="text-slate-500">Taxes and shipping calculated at checkout</p>
