@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import { apiService } from '../services/apiService';
@@ -24,6 +24,8 @@ interface Category{
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [formData, setFormData] = useState<ProductForm>({
     productName: '',
     description: '',
@@ -64,14 +66,27 @@ const AddProduct: React.FC = () => {
   }
 
   const handleImageAdd = () => {
-    // In a real implementation, this would open a file picker or image upload dialog
-    const imageUrl = prompt('Enter image URL:');
-    if (imageUrl) {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = typeof reader.result === 'string' ? reader.result : '';
       setFormData(prev => ({
         ...prev,
-        image: imageUrl
+        image: base64String
       }));
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleImageRemove = (index: number) => {
@@ -79,6 +94,10 @@ const AddProduct: React.FC = () => {
       ...prev,
       image: ""
     }));
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -218,22 +237,30 @@ const AddProduct: React.FC = () => {
                     onClick={handleImageAdd}
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
                   >
-                    Add Image URL
+                  Chọn ảnh từ máy
                   </button>
                   <p className="text-sm text-gray-500 mt-2">
                     Add product images to showcase your items
                   </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-4">
                     <div className="relative group">
                         <img
-                          src={formData.image}
+                          src={imagePreview || formData.image}
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <button
                           type="button"
                           className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          onClick={() => handleImageRemove(0)}
                         >
                           <X className="h-3 w-3" />
                         </button>

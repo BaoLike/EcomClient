@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Package, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
   Plus,
   Store
 } from 'lucide-react';
@@ -30,13 +30,13 @@ const Sidebar: React.FC = () => {
             <li key={index}>
               <NavLink
                 to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`
-                }
+                end
+                className={({ isActive }) => {
+                  return `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${isActive
+                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`;
+                }}
               >
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
