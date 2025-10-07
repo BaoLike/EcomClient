@@ -175,17 +175,35 @@ class ApiService {
     return data['content'];
   }
 
-  async addProduct(productData: ProductForm, categoryId): Promise<Product> {
-    const response = await fetch(`${this.baseURL}/api/admin/categories/${categoryId}/product`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: "include",
-      body: JSON.stringify(productData)
-    });
-    
-    if (!response.ok) throw new Error('Failed to add product');
-    return await response.json();
+async addProduct(productData: any, categoryId: number, imageFile?: File): Promise<Product> {
+  const formData = new FormData();
+  
+  const productDTO = {
+    productName: productData.productName,
+    description: productData.description,
+    price: productData.price,
+    discount: productData.discount,
+    quantity: productData.quantity,
+    specialPrice: productData.specialPrice
+  };
+  
+  formData.append('productDTO', new Blob([JSON.stringify(productDTO)], {
+    type: 'application/json'
+  }));
+  
+  if (imageFile) {
+    formData.append('image', imageFile);
   }
+  
+  const response = await fetch(`${this.baseURL}/api/admin/categories/${categoryId}/product`, {
+    method: 'POST',
+    credentials: "include",
+    body: formData 
+  });
+  
+  if (!response.ok) throw new Error('Failed to add product');
+  return await response.json();
+}
 
   async deleteProduct(productId: number): Promise<void> {
     await this.delay(500);

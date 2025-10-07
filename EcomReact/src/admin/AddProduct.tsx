@@ -13,7 +13,7 @@ interface ProductForm {
   discount: number;
   quantity: number;
   specialPrice: number,
-  image: string,
+  image: File | undefined,
 }
 
 interface Category{
@@ -33,7 +33,7 @@ const AddProduct: React.FC = () => {
     quantity: 0,
     specialPrice: 0,
     discount: 0,
-    image: ''
+    image: undefined
   });
 
   const listDataForm = []
@@ -75,15 +75,15 @@ const AddProduct: React.FC = () => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
+    const newObjectFile = URL.createObjectURL(file);
+    setImagePreview(newObjectFile);
 
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = typeof reader.result === 'string' ? reader.result : '';
       setFormData(prev => ({
         ...prev,
-        image: base64String
+        image: file,
       }));
     };
     reader.readAsDataURL(file);
@@ -92,7 +92,7 @@ const AddProduct: React.FC = () => {
   const handleImageRemove = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      image: ""
+      image: undefined,
     }));
     setImagePreview('');
     if (fileInputRef.current) {
@@ -100,20 +100,24 @@ const AddProduct: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await apiService.addProduct(formData, selectedCategoryId);
-      navigate('/products');
-    } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Error adding product. Please try again. ' + error,);
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    const response = await apiService.addProduct(
+      formData,  
+      selectedCategoryId,
+      formData.image 
+    );
+    navigate('/products');
+  } catch (error) {
+    console.error('Error adding product:', error);
+    alert('Error adding product. Please try again. ' + error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>
@@ -254,7 +258,7 @@ const AddProduct: React.FC = () => {
                 <div className="mt-6 grid grid-cols-2 gap-4">
                     <div className="relative group">
                         <img
-                          src={imagePreview || formData.image}
+                          src={imagePreview}
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <button
