@@ -17,6 +17,7 @@ import OrderManagement from './admin/OrderManagement'
 import ProductManagement from './admin/ProductManagement'
 import AddProduct from './admin/AddProduct'
 import { fetchCart } from './store/action'
+import Checkout from './components/checkout/Checkout'
 
 
 function AppContent() {
@@ -40,6 +41,7 @@ function AppContent() {
         <Route path='/cart' element={<Cart />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/checkout' element={<Checkout/>}/>
         <Route path='profile' element={<Profile />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="admin/orders" element={<OrderManagement />} />

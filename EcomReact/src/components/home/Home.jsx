@@ -28,7 +28,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <div className="pb-6 pt-14  grid  2xl:grids-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-x-6 gap-y-6">
+            <div className="pb-6 pt-14  grid  2xl:grids-cols-4 lg:grid-cols-4 sm:grid-cols-2 gap-x-6 gap-y-6">
                     {products && products.slice(0,8).map((item, index) => {
                         return <ProductCart key={index} 
                         image={item.image} productName={item.productName}
