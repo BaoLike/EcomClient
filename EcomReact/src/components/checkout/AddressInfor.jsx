@@ -31,7 +31,7 @@ const AddressInfor = () => {
 
                     <button className="px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-all"
                             onClick={addNewAddressHandle}>
-                        Add Address
+                        Thêm địa chỉ giao hàng
                     </button>
                 </div>
             ) : (

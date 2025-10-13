@@ -18,6 +18,9 @@ import ProductManagement from './admin/ProductManagement'
 import AddProduct from './admin/AddProduct'
 import { fetchCart } from './store/action'
 import Checkout from './components/checkout/Checkout'
+import { useDispatch } from 'react-redux'
+import { setLocations } from "./store/reducers/LocationReducer";
+import api from './api/api'
 
 
 function AppContent() {
@@ -26,6 +29,16 @@ function AppContent() {
   useEffect(() => {
     fetchCart();
   }, []);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+      const fetchLocation = async () => {
+          const {data} = await api.get("/public/location");
+          dispatch(setLocations(data));
+      }
+      fetchLocation()
+  }, [dispatch])
 
   const hideNavbarRoutes = ['/login', '/register'];
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
