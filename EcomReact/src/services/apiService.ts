@@ -164,6 +164,62 @@ class ApiService {
     console.log(`Order ${orderId} status updated to ${status}`);
   }
 
+  // User Orders API - Get orders for current user
+  async getUserOrders(): Promise<Order[]> {
+    await this.delay(500);
+    
+    // Mock data for current user - replace with actual API call
+    const mockUserOrders: Order[] = [
+      {
+        id: 'ORD-2024-001',
+        customerName: 'Nguyễn Văn A',
+        email: 'nguyenvana@email.com',
+        total: 1250000,
+        status: 'delivered',
+        orderDate: '2024-01-15T10:30:00Z',
+        items: 3
+      },
+      {
+        id: 'ORD-2024-002',
+        customerName: 'Nguyễn Văn A',
+        email: 'nguyenvana@email.com',
+        total: 850000,
+        status: 'shipped',
+        orderDate: '2024-01-14T15:45:00Z',
+        items: 2
+      },
+      {
+        id: 'ORD-2024-003',
+        customerName: 'Nguyễn Văn A',
+        email: 'nguyenvana@email.com',
+        total: 450000,
+        status: 'processing',
+        orderDate: '2024-01-13T09:20:00Z',
+        items: 1
+      },
+      {
+        id: 'ORD-2024-004',
+        customerName: 'Nguyễn Văn A',
+        email: 'nguyenvana@email.com',
+        total: 2100000,
+        status: 'pending',
+        orderDate: '2024-01-12T14:10:00Z',
+        items: 4
+      },
+      {
+        id: 'ORD-2024-005',
+        customerName: 'Nguyễn Văn A',
+        email: 'nguyenvana@email.com',
+        total: 750000,
+        status: 'cancelled',
+        orderDate: '2024-01-11T11:00:00Z',
+        items: 2
+      }
+    ];
+
+    return mockUserOrders;
+  }
+
   // Products API
   async getProducts(): Promise<Product[]> {
     const response = await fetch(`${this.baseURL}/api/public/products`, {
