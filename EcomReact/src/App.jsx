@@ -16,6 +16,7 @@ import Dashboard from './admin/Dashboard'
 import OrderManagement from './admin/OrderManagement'
 import ProductManagement from './admin/ProductManagement'
 import AddProduct from './admin/AddProduct'
+import OrderHistory from './components/order/OrderHistory'
 import { fetchCart } from './store/action'
 import Checkout from './components/checkout/Checkout'
 import { useDispatch } from 'react-redux'
@@ -61,6 +62,7 @@ function AppContent() {
           <Route path="admin/products" element={<ProductManagement />} />
           <Route path="admin/products/add" element={<AddProduct />} />
         </Route>
+        <Route path='/profile/order' element={<OrderHistory />} />
       </Routes>
       <Toaster position='top-center' />
     </>
