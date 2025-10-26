@@ -19,8 +19,10 @@ import AddProduct from './admin/AddProduct'
 import { fetchCart } from './store/action'
 import Checkout from './components/checkout/Checkout'
 import { useDispatch } from 'react-redux'
-import { setLocations } from "./store/reducers/LocationReducer";
-import api from './api/api'
+
+import { fetchLocations } from "./store/reducers/LocateReducer";
+import { fetchLocationsAddress } from './store/reducers/LocationReducer'
+import PaymentResult from './components/checkout/PaymentResult'
 
 
 function AppContent() {
@@ -33,12 +35,10 @@ function AppContent() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-      const fetchLocation = async () => {
-          const {data} = await api.get("/public/location");
-          dispatch(setLocations(data));
-      }
-      fetchLocation()
-  }, [dispatch])
+          console.log('Calling fetchLocations...');
+          dispatch(fetchLocations());
+          dispatch(fetchLocationsAddress())
+  }, [dispatch]);
 
   const hideNavbarRoutes = ['/login', '/register'];
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
@@ -55,6 +55,7 @@ function AppContent() {
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='/checkout' element={<Checkout/>}/>
+        <Route path='/payment' element={<PaymentResult/>}/>
         <Route path='profile' element={<Profile />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="admin/orders" element={<OrderManagement />} />

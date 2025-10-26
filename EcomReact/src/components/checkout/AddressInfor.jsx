@@ -3,11 +3,14 @@ import React, { useState } from "react";
 import { FaAddressBook } from 'react-icons/fa';
 import { AddressInforModal } from "./AddressInforModal";
 import { AddAddressForm } from "./AddAddressForm";
+import { useSelector } from "react-redux";
+import AddressSelector from "./AddressCart";
 
-const AddressInfor = () => {
-    const noAddressExist = true;
+const AddressInfor = ({onNext}) => {
+    
+    const listAddress = useSelector((state) => state.location.list);
+    const noAddressExist = listAddress.length === 0;
     const isLoading = false;
-
     const [openAddressModal, setOpenAddressModal] = useState(false);
     const [selectedAddress, setAddressSelected] = useState("");
 
@@ -43,9 +46,7 @@ const AddressInfor = () => {
                             <Skeleton/>
                         </div>
                     ) : (
-                        <div className="space-y-4 pt-6">
-
-                        </div>
+                        <AddressSelector onNext={onNext} />
                     )}
                 </div>
 

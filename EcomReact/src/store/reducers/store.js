@@ -4,6 +4,7 @@ import { errorReducer } from "./errorReducer";
 import { CartReducer } from "./CartReducer";
 import { AuthReducer } from "./AuthReducer";
 import { LocationReducer } from "./LocationReducer";
+import locationReducer from "./LocateReducer";
 
 const user = localStorage.getItem("auth") ? JSON.parse(localStorage.getItem("auth")) : [];
 const cartItems = localStorage.getItem("cartItemList") ? JSON.parse(localStorage.getItem("cartItemList")) : [];
@@ -22,7 +23,8 @@ const store = configureStore({
         errors: errorReducer,
         carts: CartReducer,
         auth: AuthReducer,
-        location: LocationReducer
+        location: LocationReducer,
+        listLocate: locationReducer
     },
     preloadedState: initialState,
 });

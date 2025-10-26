@@ -8,8 +8,6 @@ const FORCE_MOCK =
 const api = axios.create({
   baseURL: `${BASE || ""}/api`,
   withCredentials: true,
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
 api.interceptors.request.use((config) => {
