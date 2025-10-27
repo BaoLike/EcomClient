@@ -3,6 +3,7 @@ import { Search, Filter, Eye, Calendar, Package, DollarSign } from 'lucide-react
 import { apiService } from '../../services/apiService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import api from '../../api/api';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -15,11 +16,10 @@ const OrderHistory = () => {
     const fetchOrders = async () => {
       try {
         // Lấy đơn hàng của người dùng hiện tại
-        const data = await apiService.getUserOrders();
-        setOrders(data);
+        const data = await api.get("http://localhost:8080/api/order-history/my-orders");
+        setOrders(data.data);
       } catch (error) {
         console.error('Error fetching user orders:', error);
-        // Fallback to mock data for development
         const mockData = await apiService.getOrders();
         setOrders(mockData);
       } finally {
@@ -30,9 +30,9 @@ const OrderHistory = () => {
     fetchOrders();
   }, []);
 
+  console.log('order user data', orders)
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
     let matchesDate = true;
@@ -59,7 +59,7 @@ const OrderHistory = () => {
       }
     }
     
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch || matchesStatus || matchesDate;
   });
 
   const getStatusColor = (status) => {
@@ -75,11 +75,11 @@ const OrderHistory = () => {
 
   const getStatusText = (status) => {
     const statusTexts = {
-      pending: 'Chờ xử lý',
-      processing: 'Đang xử lý',
-      shipped: 'Đã gửi hàng',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy'
+      PENDING: 'Chờ xử lý',
+      PROCESSING: 'Đang xử lý',
+      SHIPPED: 'Đã gửi hàng',
+      DELIVERED: 'Đã giao hàng',
+      CANCELED: 'Đã hủy'
     };
     return statusTexts[status] || status;
   };
@@ -196,10 +196,10 @@ const OrderHistory = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-3">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        Đơn hàng #{order.id}
+                        Đơn hàng #{order.orderId}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-                        {getStatusText(order.status)}
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.orderStatus)}`}>
+                        {getStatusText(order.orderStatus)}
                       </span>
                     </div>
                     
@@ -210,11 +210,11 @@ const OrderHistory = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
-                        <span>{order.items} sản phẩm</span>
+                        {/* <span>{order.items} sản phẩm</span> */}
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
-                        <span className="font-semibold text-gray-900">{formatCurrency(order.total)}</span>
+                        <span className="font-semibold text-gray-900">{formatCurrency(order.totalAmount)}</span>
                       </div>
                     </div>
                   </div>

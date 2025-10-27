@@ -10,6 +10,7 @@ const AddressInfor = ({onNext}) => {
     
     const listAddress = useSelector((state) => state.location.list);
     const noAddressExist = listAddress.length === 0;
+    console.log('list Address user', listAddress)
     const isLoading = false;
     const [openAddressModal, setOpenAddressModal] = useState(false);
     const [selectedAddress, setAddressSelected] = useState("");

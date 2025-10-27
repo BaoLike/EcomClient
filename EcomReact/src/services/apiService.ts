@@ -166,8 +166,10 @@ class ApiService {
 
   // User Orders API - Get orders for current user
   async getUserOrders(): Promise<Order[]> {
-    await this.delay(500);
     
+    const listOrderUserFromServer = await fetch(`${this.baseURL}/api/order-history/my-orders`, )
+
+
     // Mock data for current user - replace with actual API call
     const mockUserOrders: Order[] = [
       {

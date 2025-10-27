@@ -38,6 +38,7 @@ export default function PaymentMethodComponent({onNext}) {
         return totalPrice;
     }
     const amount = getTotalPrice();
+    const listProductItems = JSON.parse(localStorage.getItem("cartItemList"));
     
     const dataPayment = {
               "amount": amount,
@@ -58,7 +59,8 @@ export default function PaymentMethodComponent({onNext}) {
               "invCompany": "",
               "invTaxcode": "",
               "invType": "I",
-              "invAddr": ""
+              "invAddr": "",
+              "products": listProductItems, 
     }
     const responseVNPay = await api.post("http://localhost:8080/api/payment/create-payment", 
       dataPayment
