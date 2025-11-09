@@ -223,14 +223,15 @@ class ApiService {
   }
 
   // Products API
-  async getProducts(): Promise<Product[]> {
-    const response = await fetch(`${this.baseURL}/api/public/products`, {
+  async getProducts(param: String): Promise<Product[]> {
+    const response = await fetch(`${this.baseURL}/api/public/products?${param}`, {
       method: 'GET',
       headers: {'Content-Type': 'application/json'},
     })
     if (!response.ok) throw new Error('Failed to featch product');
     const data = await response.json();
-    return data['content'];
+    console.log('data fetch product', data);
+    return data;
   }
 
 async addProduct(productData: any, categoryId: number, imageFile?: File): Promise<Product> {
@@ -277,20 +278,34 @@ async addProduct(productData: any, categoryId: number, imageFile?: File): Promis
   }
 
   async updateProduct(productId: string, productData: Partial<Product>): Promise<Product> {
-    await this.delay(800);
-    
-    // In a real API, this would be:
-    // const response = await fetch(`${this.baseURL}/products/${productId}`, {
-    //   method: 'PUT',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(productData)
-    // });
-    // 
-    // if (!response.ok) throw new Error('Failed to update product');
-    // return await response.json();
+    const formData = new FormData();
+  
+    const productDTO = {
+      productName: productData.name,
+      description: productData.description,
+      price: productData.price,
+      discount: productData.discount,
+      quantity: productData.stock,
+      specialPrice: productData.specialPrice
+    };
 
-    console.log(`Product ${productId} updated with:`, productData);
-    return { id: productId, ...productData } as Product;
+    formData.append('productDTO', new Blob([JSON.stringify(productDTO)], {
+      type: 'application/json'
+    }));
+
+    if (productData.image) {
+      formData.append('image', productData.image);
+    }
+    console.log('form data', productDTO)
+
+    const response = await fetch(`${this.baseURL}/api/admin/products/${productId}`, {
+      method: 'PUT',
+      credentials: "include",
+      body: formData 
+    });
+
+    if (!response.ok) throw new Error('Failed to add product');
+    return await response.json();
   }
 
   async getCategory(): Promise<Category[]>{

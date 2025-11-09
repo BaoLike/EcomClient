@@ -38,7 +38,6 @@ const Products = () => {
                     <Paginations
                     numberOfPage = {pagination?.totalPages}
                     totalProducts = {pagination?.totalElements}/>
-                    {console.log('number of page',pagination)}
                 </div>
             </div>)}
         </div>

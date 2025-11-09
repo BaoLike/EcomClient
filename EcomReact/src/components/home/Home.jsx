@@ -1,18 +1,22 @@
-import { useDispatch, useSelector } from "react-redux";
 import Banner from "./Banner";
-import { useEffect } from "react";
-import { fetchProducts } from "../../store/action";
+import { useEffect, useState } from "react";
 import ProductCart from '../shared/ProductCart';
 import Loader from "../shared/Loader";
+import api from "../../api/api";
 
 
 const Home = () => {
-    const dispatch = useDispatch();
-    const {products} = useSelector((state) => state.products);
+    const [products, setProducts] = useState([]);
 
-    useEffect(() => {
-        dispatch(fetchProducts())
-    })
+    const fetchRecommendProduct = async () => {
+        const userId = JSON.parse(localStorage.getItem('auth')).id;
+        const responseData = await api.get(`/public/recommend/${userId}`);
+        setProducts(responseData.data);
+    }
+
+    fetchRecommendProduct()
+
+    console.log('products', products)
     return (
         <div className="lg:px-14 sm:px-8 px-4">
             <div className="py-6">
@@ -29,7 +33,7 @@ const Home = () => {
             </div>
 
             <div className="pb-6 pt-14  grid  2xl:grids-cols-4 lg:grid-cols-4 sm:grid-cols-2 gap-x-6 gap-y-6">
-                    {products && products.slice(0,8).map((item, index) => {
+                    {products && products.slice(0,10).map((item, index) => {
                         return <ProductCart key={index} 
                         image={item.image} productName={item.productName}
                         productId={item.productId} description={item.description}

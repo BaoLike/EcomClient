@@ -1,7 +1,8 @@
 import { Pagination } from '@mui/material'
 import { useLoaderData, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { apiService } from '../../services/apiService';
 
-const Paginations = ({numberOfPage, totalProducts})=>{
+const Paginations = ({numberOfPage, totalProducts, handleChange})=>{
     const [searchParams] = useSearchParams();
     const {pathname} = useLocation();
     const params = new URLSearchParams();
@@ -10,12 +11,15 @@ const Paginations = ({numberOfPage, totalProducts})=>{
 
     const onChangeHandle = (event, value)=>{
         params.set("page", value.toString());
-        navigate(`${pathname}?${params}`);  
+        navigate(`${pathname}?${params}`);
+        const queryParam = `pageNumber=${value}`
+        console.log('page change', value)
+        handleChange(queryParam);
     }
     return (
         <div>
             <Pagination 
-            count={numberOfPage} 
+            count={numberOfPage-1} 
             page={paramValue}
             defaultPage={1} 
             siblingCount={0} 

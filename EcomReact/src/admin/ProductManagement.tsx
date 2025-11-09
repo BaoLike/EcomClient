@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, Eye, Package } from 'lucide-react';
 import { apiService } from '../services/apiService';
+import Paginations from '../components/shared/Paginations';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCategories } from '../store/action';
+import { useAppSelector } from '../store/hook';
+import UpdateProductForm from './UpdateProductForm';
+import toast from 'react-hot-toast';
 
 interface Product {
   productId: number;
@@ -18,12 +24,58 @@ const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({});
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleChangePage = async (queryParam) => {
+    const productPageNumber = await apiService.getProducts(queryParam);
+    setProducts(productPageNumber.content);
+  }
+
+  const handleOnclicEditProduct = (product: Product) => {
+  setSelectedProduct(product);
+  setShowUpdateForm(true);
+};
+
+
+  const handleUpdateProduct = async (formData: any) => {
+    try {
+      await apiService.updateProduct(selectedProduct.productId, formData);
+      setProducts(products.map(p => 
+        p.productId === selectedProduct.productId 
+          ? { ...p, ...formData } 
+          : p
+      ));
+
+      setShowUpdateForm(false);
+      setSelectedProduct(null);
+
+      toast.success('Cập nhật sản phẩm thành công!');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Có lỗi xảy ra khi cập nhật sản phẩm');
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowUpdateForm(false);
+    setSelectedProduct(null);
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await apiService.getProducts();
-        setProducts(data);
+        setProducts(data.content);
+        const paginationData = {
+          pageNumber: data.pageNumber,
+          pageSize: data.pageSize,
+          totalElements: data.totalElements,
+          totalPages: data.totalPages,
+          lastPage: data.lastPage
+        }
+        setPagination(paginationData)
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -46,7 +98,7 @@ const ProductManagement: React.FC = () => {
     }
   };
 
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products.filter((product: { productName: string; }) =>
     product.productName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -134,7 +186,9 @@ const ProductManagement: React.FC = () => {
                       <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                      <button 
+                        onClick={() => {handleOnclicEditProduct(product)}}
+                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors duration-200">
                         <Edit className="h-4 w-4" />
                       </button>
                     </div>
@@ -170,6 +224,19 @@ const ProductManagement: React.FC = () => {
           )}
         </div>
       </div>
+      <div className="flex justify-center pt-10">
+        <Paginations
+        handleChange={handleChangePage}
+        numberOfPage = {pagination?.totalPages}
+        totalProducts = {pagination?.totalElements}/>
+      </div>
+        {showUpdateForm && selectedProduct && (
+          <UpdateProductForm
+            product={selectedProduct}
+            onClose={handleCloseForm}
+            onSubmit={handleUpdateProduct}
+          />
+        )}
     </div>
   );
 };

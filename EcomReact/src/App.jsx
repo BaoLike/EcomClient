@@ -24,6 +24,7 @@ import { useDispatch } from 'react-redux'
 import { fetchLocations } from "./store/reducers/LocateReducer";
 import { fetchLocationsAddress } from './store/reducers/LocationReducer'
 import PaymentResult from './components/checkout/PaymentResult'
+import UpdateProductForm from './admin/UpdateProductForm'
 
 
 function AppContent() {
