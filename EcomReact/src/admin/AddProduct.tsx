@@ -21,6 +21,11 @@ interface Category{
   categoryName: string,
 }
 
+interface Size {
+  id: number;
+  sizeName: string;
+}
+
 const AddProduct: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -40,16 +45,28 @@ const AddProduct: React.FC = () => {
 
 
   const [selectedCategoryId, handleSelectedCategory] = useState(0);
-
   const [categories, fetchCategories] = useState<Category[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [selectedSizeIds, setSelectedSizeIds] = useState<number[]>([]);
 
   useEffect(() => {
-    const fecthData = async () => {
-      const data = await apiService.getCategory();
-      fetchCategories(data);
+    const fetchData = async () => {
+      const categoryData = await apiService.getCategory();
+      fetchCategories(categoryData);
+      
+      const sizeData = await apiService.getSizes();
+      setSizes(sizeData);
     }
-    fecthData();
+    fetchData();
   }, []);
+
+  const handleSizeToggle = (sizeId: number) => {
+    setSelectedSizeIds(prev => 
+      prev.includes(sizeId) 
+        ? prev.filter(id => id !== sizeId)
+        : [...prev, sizeId]
+    );
+  };
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -105,9 +122,10 @@ const handleSubmit = async (e: React.FormEvent) => {
   setLoading(true);
   
   try {
-    const response = await apiService.addProduct(
+    const response = await apiService.addProductWithSizes(
       formData,  
       selectedCategoryId,
+      selectedSizeIds,
       formData.image 
     );
     navigate('/products');
@@ -127,10 +145,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200 mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Products
+          Quay lại danh sách
         </button>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Add New Product</h1>
-        <p className="text-gray-600">Create a new product for your store</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Thêm sản phẩm mới</h1>
+        <p className="text-gray-600">Tạo sản phẩm mới cho cửa hàng của bạn</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm">
@@ -139,7 +157,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name *
+                  Tên sản phẩm *
                 </label>
                 <input
                   type="text"
@@ -149,13 +167,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                   value={formData.productName}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter product name"
+                  placeholder="Nhập tên sản phẩm"
                 />
               </div>
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
+                  Mô tả *
                 </label>
                 <textarea
                   id="description"
@@ -165,14 +183,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Describe your product..."
+                  placeholder="Mô tả chi tiết sản phẩm..."
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                    Price ($) *
+                    Giá (VNĐ) *
                   </label>
                   <input
                     type="number"
@@ -180,17 +198,17 @@ const handleSubmit = async (e: React.FormEvent) => {
                     name="price"
                     required
                     min="0"
-                    step="0.01"
+                    step="1000"
                     value={formData.price}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
+                    placeholder="0"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
-                    Stock Quantity *
+                    Số lượng tồn kho *
                   </label>
                   <input
                     type="number"
@@ -209,7 +227,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                    Category *
+                    Danh mục *
                   </label>
                   <select
                     id="category"
@@ -219,19 +237,46 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onChange={onChangeCategory}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">Select a category</option>
+                    <option value="">Chọn danh mục</option>
                     {categories.map(category => (
                       <option key={category.categoryId} value={category.categoryId}>{category.categoryName}</option>
                     ))}
                   </select>
                 </div>
+              </div>
 
+              {/* Size Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kích cỡ có sẵn
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map(size => (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={() => handleSizeToggle(size.id)}
+                      className={`px-4 py-2 rounded-lg border-2 font-medium transition-all duration-200 ${
+                        selectedSizeIds.includes(size.id)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {size.sizeName}
+                    </button>
+                  ))}
+                </div>
+                {selectedSizeIds.length > 0 && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Đã chọn: {sizes.filter(s => selectedSizeIds.includes(s.id)).map(s => s.sizeName).join(', ')}
+                  </p>
+                )}
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Images
+                Hình ảnh sản phẩm
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                 <div className="text-center">
@@ -244,7 +289,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   Chọn ảnh từ máy
                   </button>
                   <p className="text-sm text-gray-500 mt-2">
-                    Add product images to showcase your items
+                    Thêm hình ảnh để giới thiệu sản phẩm
                   </p>
                 <input
                   ref={fileInputRef}
@@ -280,14 +325,14 @@ const handleSubmit = async (e: React.FormEvent) => {
               onClick={() => navigate('/products')}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {loading ? 'Adding Product...' : 'Add Product'}
+              {loading ? 'Đang thêm...' : 'Thêm sản phẩm'}
             </button>
           </div>
         </form>

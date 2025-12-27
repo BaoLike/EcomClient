@@ -45,6 +45,11 @@ interface Category{
   categoryName: string
 }
 
+interface Size {
+  id: number,
+  sizeName: string
+}
+
 class ApiService {
   private baseURL: string = 'http://localhost:8080'; // Replace with your actual API URL
 
@@ -317,7 +322,95 @@ async addProduct(productData: any, categoryId: number, imageFile?: File): Promis
     const data = await response.json();
     console.log('data raw', data["content"]);
     return data["content"];
+  }
+
+  // Sizes API
+  async getSizes(): Promise<Size[]> {
+    const response = await fetch(`${this.baseURL}/api/public/sizes`, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'},
+    });
+    if (!response.ok) throw new Error('Failed to fetch sizes');
+    return await response.json();
+  }
+
+  async getSizeById(sizeId: number): Promise<Size> {
+    const response = await fetch(`${this.baseURL}/api/public/sizes/${sizeId}`, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'},
+    });
+    if (!response.ok) throw new Error('Failed to fetch size');
+    return await response.json();
+  }
+
+  async addProductWithSizes(productData: any, categoryId: number, sizeIds: number[], imageFile?: File): Promise<Product> {
+    const formData = new FormData();
     
+    const productDTO = {
+      productName: productData.productName,
+      description: productData.description,
+      price: productData.price,
+      discount: productData.discount,
+      quantity: productData.quantity,
+      specialPrice: productData.specialPrice
+    };
+    
+    formData.append('productDTO', new Blob([JSON.stringify(productDTO)], {
+      type: 'application/json'
+    }));
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    // Append each sizeId separately
+    sizeIds.forEach(sizeId => {
+      formData.append('sizeIds', sizeId.toString());
+    });
+    
+    const response = await fetch(`${this.baseURL}/api/admin/categories/${categoryId}/product`, {
+      method: 'POST',
+      credentials: "include",
+      body: formData 
+    });
+    
+    if (!response.ok) throw new Error('Failed to add product');
+    return await response.json();
+  }
+
+  async updateProductWithSizes(productId: string, productData: any, sizeIds: number[], imageFile?: File): Promise<Product> {
+    const formData = new FormData();
+  
+    const productDTO = {
+      productName: productData.name || productData.productName,
+      description: productData.description,
+      price: productData.price,
+      discount: productData.discount,
+      quantity: productData.stock || productData.quantity,
+      specialPrice: productData.specialPrice
+    };
+
+    formData.append('productDTO', new Blob([JSON.stringify(productDTO)], {
+      type: 'application/json'
+    }));
+
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    // Append each sizeId separately
+    sizeIds.forEach(sizeId => {
+      formData.append('sizeIds', sizeId.toString());
+    });
+
+    const response = await fetch(`${this.baseURL}/api/admin/products/${productId}`, {
+      method: 'PUT',
+      credentials: "include",
+      body: formData 
+    });
+
+    if (!response.ok) throw new Error('Failed to update product');
+    return await response.json();
   }
 }
 

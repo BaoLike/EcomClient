@@ -8,13 +8,26 @@ import api from "../../api/api";
 const Home = () => {
     const [products, setProducts] = useState([]);
 
-    const fetchRecommendProduct = async () => {
-        const userId = JSON.parse(localStorage.getItem('auth')).id;
-        const responseData = await api.get(`/public/recommend/${userId}`);
-        setProducts(responseData.data);
-    }
+    useEffect(() => {
+        const fetchRecommendProduct = async () => {
+            try {
+                const auth = localStorage.getItem('auth');
+                if (auth) {
+                    const userId = JSON.parse(auth).id;
+                    const responseData = await api.get(`/public/recommend/${userId}`);
+                    setProducts(responseData.data);
+                } else {
+                    // Fallback: lấy sản phẩm công khai nếu chưa đăng nhập
+                    const responseData = await api.get('/public/products');
+                    setProducts(responseData.data.content || []);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
 
-    fetchRecommendProduct()
+        fetchRecommendProduct();
+    }, []);
 
     console.log('products', products)
     return (
@@ -25,9 +38,9 @@ const Home = () => {
 
             <div className="py-5 ">
                 <div className="flex flex-col justify-center items-center space-y-2">
-                    <h1 className="text-slate-800 text-4xl font-bold">Products</h1>
+                    <h1 className="text-slate-800 text-4xl font-bold">Sản phẩm</h1>
                         <span className="text-slate-700">
-                            Discover our handpicked selection  of top-rated items just for you!
+                            Khám phá bộ sưu tập sản phẩm được chọn lọc dành riêng cho bạn!
                         </span>
                 </div>
             </div>
@@ -38,7 +51,8 @@ const Home = () => {
                         image={item.image} productName={item.productName}
                         productId={item.productId} description={item.description}
                         quantity={item.quantity} price={item.price}
-                        discount={item.discount} specialPrice={item.specialPrice}/>
+                        discount={item.discount} specialPrice={item.specialPrice}
+                        sizes={item.sizes}/>
                     })}
             </div>
         </div>

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import ItemContent from "./ItemContent";
 import { useEffect, useState } from "react";
 import { fetchCart } from "../../store/action";
+import { formatPrice } from "../utils";
 import { FaShoppingBag, FaShoppingCart } from "react-icons/fa";
 const Cart = () => {
     const getTotalPrice = () => {
@@ -38,14 +39,14 @@ const Cart = () => {
                 <div className="flex flex-col items-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                         <MdShoppingCart size={36} className="text-gray-700"/>
-                        Your cart
+                        Giỏ hàng
                     </h1>
 
-                    <p className="text-lg text-gray-600 mt-2">Your cart is empty! Go shoping now</p>
+                    <p className="text-lg text-gray-600 mt-2">Giỏ hàng của bạn đang trống!</p>
                     <Link to="/products"><button className={`bg-blue-500 opacity-100 hover:bg-600
                                         text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-50 mt-10 flex  justify-center`}>
                                             <FaShoppingCart className="mr-2"/>
-                                            Go To Product Store
+                                            Đi mua sắm
                                         </button></Link>
                 </div>
             </div>)
@@ -56,27 +57,27 @@ const Cart = () => {
             <div className="flex flex-col items-center mb-12">
                 <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
                     <MdShoppingCart size={36} className="text-gray-700"/>
-                    Your cart
+                    Giỏ hàng
                 </h1>
 
-                <p className="text-lg text-gray-600 mt-2">All your selected items</p>
+                <p className="text-lg text-gray-600 mt-2">Tất cả sản phẩm bạn đã chọn</p>
             </div>
 
             <div class="grid md:grid-cols-5  grid-cols-4 gap-4 pb-2 semibold items-center">
                 <div className="md:col-span-2 justify-self-start text-lg text-slate-800 lg:ps-4">
-                    Products
+                    Sản phẩm
                 </div>
 
                 <div className="justify-self-center text-lg text-slate-800">
-                    Quantity    
+                    Số lượng    
                 </div>
 
                 <div className="justify-self-center text-lg text-slate-800">
-                    Price
+                    Đơn giá
                 </div>
 
                 <div className="justify-self-center text-lg text-slate-800">
-                    Total
+                    Thành tiền
                 </div>  
             </div>
 
@@ -88,12 +89,12 @@ const Cart = () => {
             <div className="border-t-[1.5px] border-slate-200 py-4 flex sm:flex-row sm:px-0 px-2 flex-col sm:justify-between gap-4">
                 <div></div>
                 <div className="flex text-sm gap-1 flex-col">
-                    <div className="flex justify-between w-full md:text-lg text-sm font-semibold">
-                        <span>Subtotal</span>
-                        <span>{Math.round(totalPrice*100)/100}</span>
+                    <div className="flex justify-between w-full md:text-lg text-sm font-semibold gap-4">
+                        <span>Tạm tính</span>
+                        <span>{formatPrice(totalPrice)}</span>
                     </div>
 
-                    <p className="text-slate-500">Taxes and shipping calculated at checkout</p>
+                    <p className="text-slate-500">Phí vận chuyển sẽ được tính khi thanh toán</p>
 
                     <Link className="w-full flex justify-end" to="/checkout">
                         <button
@@ -101,14 +102,14 @@ const Cart = () => {
                             className="font-semibold w-[300px] py-2 px-4 rounded-sm bg-customBlue text-white flex items-center justify-center gap-2 hover:text-gray-300 transition duration-500"
                         >
                             <MdShoppingCart size={20}/>
-                            Checkout
+                            Thanh toán
                         </button>
                     </Link>
 
                     
                     <Link className="flex gap-2 items-center mt-2 text-slate-500" to="/products">
                         <MdArrowBack/>
-                        <span>Continue Shoping</span>
+                        <span>Tiếp tục mua sắm</span>
                     </Link>
                 </div>
             </div>

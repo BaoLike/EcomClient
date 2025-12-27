@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Building2, MapPin, Edit2, Trash2, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, MapPin, Edit2, Trash2, CheckCircle, Plus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { setSelectedAddressIdStore } from '../../store/reducers/LocationReducer';
+import { setSelectedAddressIdStore, fetchLocationsAddress } from '../../store/reducers/LocationReducer';
+import { AddressInforModal } from "./AddressInforModal";
+import { AddAddressForm } from "./AddAddressForm";
 
 const AddressCard = ({ address, isSelected, onSelect, onEdit, onDelete }) => {
   return (
@@ -73,9 +75,17 @@ const AddressCard = ({ address, isSelected, onSelect, onEdit, onDelete }) => {
 const AddressSelector = ({onNext}) => {
   const listAddress = useSelector((state) => state.location.list);
   console.log('list address card', listAddress.data)
-  const [addresses, setAddresses] = useState(listAddress.data);
+  const [addresses, setAddresses] = useState(listAddress.data || []);
   const [selectedAddressId, setSelectedAddressId] = useState(0);
+  const [openAddressModal, setOpenAddressModal] = useState(false);
   const dispatch = useDispatch();
+
+  // Cập nhật addresses khi listAddress thay đổi từ Redux store
+  useEffect(() => {
+    if (listAddress.data) {
+      setAddresses(listAddress.data);
+    }
+  }, [listAddress]);
 
   const handleSelectAddress = (id) => {
     setSelectedAddressId(id);
@@ -88,7 +98,7 @@ const AddressSelector = ({onNext}) => {
   };
 
   const handleDeleteAddress = (id) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
+    if (window.confirm('Bạn có chắc muốn xóa địa chỉ này không?')) {
       setAddresses(addresses.filter(addr => addr.addressId !== id));
       if (selectedAddressId === id) {
         setSelectedAddressId(addresses.find(addr => addr.addressId !== id)?.addressId || null);
@@ -97,14 +107,35 @@ const AddressSelector = ({onNext}) => {
     }
   };
 
+  const handleAddNewAddress = () => {
+    setOpenAddressModal(true);
+  };
+
+  // Xử lý khi thêm địa chỉ thành công
+  const handleAddAddressSuccess = () => {
+    setOpenAddressModal(false); // Đóng modal
+    dispatch(fetchLocationsAddress()); // Refresh danh sách địa chỉ từ API
+  };
+
   return (
   <div className="w-full">
     <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
-      Select Address
+      Chọn địa chỉ giao hàng
     </h1>
 
+    {/* Nút thêm địa chỉ mới */}
+    <div className="flex justify-center mb-4">
+      <button
+        onClick={handleAddNewAddress}
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+      >
+        <Plus className="w-5 h-5" />
+        Thêm địa chỉ mới
+      </button>
+    </div>
+
     <div className="max-h-[500px] overflow-y-auto space-y-4 px-2">
-      {addresses.map((address) => (
+      {addresses && addresses.map((address) => (
         <AddressCard
           key={address.id}
           address={address}
@@ -116,9 +147,9 @@ const AddressSelector = ({onNext}) => {
       ))}
     </div>
 
-    {addresses.length === 0 && (
+    {(!addresses || addresses.length === 0) && (
       <div className="text-center py-12 text-gray-500">
-        No addresses found. Add your first address to continue.
+        Chưa có địa chỉ nào. Vui lòng thêm địa chỉ để tiếp tục.
       </div>
     )}
 
@@ -129,15 +160,20 @@ const AddressSelector = ({onNext}) => {
           console.log('Next clicked, selected address:', selectedAddressId);
           onNext();
           } else {
-          toast.error('Please select an address first');
+          toast.error('Vui lòng chọn địa chỉ giao hàng');
         }
         }}
         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         disabled={!selectedAddressId}
       >
-        Next
+        Tiếp tục
       </button>
     </div>
+
+    {/* Modal thêm địa chỉ */}
+    <AddressInforModal setIsOpen={setOpenAddressModal} isOpen={openAddressModal}>
+      <AddAddressForm onSuccess={handleAddAddressSuccess} />
+    </AddressInforModal>
   </div>
 );
 };

@@ -31,7 +31,8 @@ const Products = () => {
                         image={item.image} productName={item.productName}
                         productId={item.productId} description={item.description}
                         quantity={item.quantity} price={item.price}
-                        discount={item.discount} specialPrice={item.specialPrice}/>
+                        discount={item.discount} specialPrice={item.specialPrice}
+                        sizes={item.sizes}/>
                     })}
                 </div>
                 <div className="flex justify-center pt-10">

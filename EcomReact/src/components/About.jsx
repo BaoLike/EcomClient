@@ -2,14 +2,14 @@ const About = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="text-slate-800 text-4xl font-bold text-center mb-12">
-                About us
+                Về chúng tôi
             </div>
             <div className="flex flex-col lg:flex-row justify-between items-center mb-12 ">
                 <div className="w-full md:w-1/2 text-center md:text-left">
                     <p className="text-lg mb-4 ">
-                        Welcome to E-Shop, your trusted destination for quality products at the best prices.
-                       Enjoy a seamless shopping experience with secure checkout, fast delivery, and 24/7 customer support.
-                       Start exploring our latest collections today!</p>
+                        Chào mừng bạn đến với E-Shop - điểm đến đáng tin cậy cho các sản phẩm chất lượng với giá tốt nhất.
+                        Tận hưởng trải nghiệm mua sắm liền mạch với thanh toán an toàn, giao hàng nhanh chóng và hỗ trợ khách hàng 24/7.
+                        Bắt đầu khám phá các bộ sưu tập mới nhất của chúng tôi ngay hôm nay!</p>
                 </div>
 
                 <div className="w-full md:w-1/2 mb-6 md:mb-0">

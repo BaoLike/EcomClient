@@ -9,7 +9,7 @@ import api from '../../api/api';
 import toast from 'react-hot-toast';
 import Spinner from "../shared/Spinner";
 
-export const AddAddressForm = () => {
+export const AddAddressForm = ({ onSuccess }) => {
 
     const {btnLoader} = useSelector((state) => state.errors)
     const listLocation = useSelector((state) => state.listLocate.locations);
@@ -51,11 +51,17 @@ export const AddAddressForm = () => {
         try{
           const response = await api.post("/addresses", dataAddressInforToSend);
           console.log('response', response)
-          if(response.status == '201'){
-            toast.success("Thêm địa chỉ nhận nhận hàng thành công")
+          if(response.status == '201' || response.status === 201){
+            toast.success("Thêm địa chỉ nhận hàng thành công");
+            setLoaderSubmit(false);
+            reset(); // Reset form
+            if (onSuccess) {
+              onSuccess(); // Đóng modal và refresh danh sách
+            }
           }
           else{
             toast.error("Đã có lỗi xảy ra vui lòng thử lại sau");
+            setLoaderSubmit(false);
           }
           
         }catch{
@@ -182,10 +188,10 @@ export const AddAddressForm = () => {
             {loaderSubmit ? (
               <>
                 <Spinner/>
-                Loading...
+                Đang xử lý...
               </>
             ) : (
-              <>Save</>
+              <>Lưu địa chỉ</>
             )}
           </button>
         </form>

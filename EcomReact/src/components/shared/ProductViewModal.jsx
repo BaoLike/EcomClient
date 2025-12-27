@@ -1,16 +1,48 @@
 import { Button, Dialog, DialogPanel, DialogTitle, DialogBackdrop } from '@headlessui/react'
 import { Divider } from '@mui/material'
 import { useState } from 'react'
-import { MdClose, MdDone } from 'react-icons/md'
+import { MdClose, MdDone, MdShoppingCart } from 'react-icons/md'
 import Status from './Status'
+import { formatPrice } from '../utils'
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../../store/action'
+import toast from 'react-hot-toast'
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
-    let [isOpen, setIsOpen] = useState(true)
-    const {id, productName, image, description, quantity, price, discount, specialPrice} = product
-    const handleClickOpen = () => {
-        setOpen(true);
+    const [selectedSize, setSelectedSize] = useState(null)
+    const dispatch = useDispatch()
+    
+    // Safe destructuring với giá trị mặc định
+    const {id, productName, image, description, quantity, price, discount, specialPrice, sizes: rawSizes} = product || {}
+    
+    // Chuyển đổi sizes thành array nếu cần (hỗ trợ cả Set và Array)
+    const sizes = rawSizes ? (Array.isArray(rawSizes) ? rawSizes : Object.values(rawSizes)) : [];
+
+    const handleAddToCart = () => {
+        if (sizes && sizes.length > 0 && !selectedSize) {
+            toast.error("Vui lòng chọn size!");
+            return;
+        }
+        
+        const cartItems = {
+            image,
+            productName,
+            description,
+            specialPrice,
+            price,
+            productId: id,
+            quantity,
+            selectedSize,
+        };
+        dispatch(addToCart(cartItems, 1, toast));
+        setOpen(false);
+        setSelectedSize(null);
     }
-    console.log(productName)
+
+    const handleClose = () => {
+        setOpen(false);
+        setSelectedSize(null);
+    }
 
     return (
         <>
@@ -41,27 +73,26 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                                     {specialPrice ? (
                                         <div className='flex items-center gap-2'>
                                             <span className='text-gray-400 line-through'>
-                                                ${Number(price).toFixed(2)}
+                                                {formatPrice(price)}
                                             </span>
                                             <span className='sm:text-xl font-semibold text-slate-700'>
-                                                ${Number(specialPrice).toFixed(2)}
+                                                {formatPrice(specialPrice)}
                                             </span>
                                         </div>
                                     ) : (
                                         <span className='text-xl font-bold'>
-                                            {"  "}
-                                            ${Number(price).toFixed(2)}
+                                            {formatPrice(price)}
                                         </span>
                                     )}
 
                                     {isAvailable ? (
                                         <Status
-                                                text='In Stock'
+                                                text='Còn hàng'
                                                 icon={MdDone}
                                                 bg='bg-teal-200'
                                                 color='text-teal-900'/>
                                     ) : (
-                                        <Status text='Out-Of-Stock'
+                                        <Status text='Hết hàng'
                                                 icon={MdClose}
                                                 bg='bg-rose-200'
                                                 color='text-rose-700'/>
@@ -72,10 +103,48 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                             </div>
                         </div>
 
+                        {/* Size Selection */}
+                        {sizes && sizes.length > 0 && (
+                            <div className='px-6 pb-4'>
+                                <Divider />
+                                <p className='text-sm font-semibold text-gray-700 mt-4 mb-2'>Chọn Size:</p>
+                                <div className='flex flex-wrap gap-2'>
+                                    {sizes.map(size => (
+                                        <button
+                                            key={size.id}
+                                            onClick={() => setSelectedSize(size)}
+                                            className={`px-4 py-2 rounded-lg border-2 font-medium transition-all duration-200 ${
+                                                selectedSize?.id === size.id
+                                                    ? 'bg-blue-600 text-white border-blue-600'
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                                            }`}
+                                        >
+                                            {size.sizeName}
+                                        </button>
+                                    ))}
+                                </div>
+                                {selectedSize && (
+                                    <p className='text-sm text-blue-600 mt-2'>
+                                        Đã chọn: {selectedSize.sizeName}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         <div className='px-6 py-4 flex justify-end gap-4'>
-                            <button onClick={() => setOpen(false)} type="button" className='px-4 py-2 text-sm font-semibold test-slate-700 border border-slate-700 hover:text-slate-800 hover:border-slate-800 rounded-md'>
-                                Close
+                            <button onClick={handleClose} type="button" className='px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-700 hover:text-slate-800 hover:border-slate-800 rounded-md'>
+                                Đóng
                             </button>
+                            {isAvailable && (
+                                <button 
+                                    onClick={handleAddToCart} 
+                                    type="button" 
+                                    className='px-4 py-2 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-md flex items-center gap-2 transition-colors'
+                                >
+                                    <MdShoppingCart size={18} />
+                                    Thêm vào giỏ
+                                </button>
+                            )}
                         </div>
                     </DialogPanel>
                 </div>

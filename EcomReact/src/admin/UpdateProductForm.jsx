@@ -14,16 +14,31 @@ const UpdateProductForm = ({ product, onClose, onSubmit }) => {
   });
 
   const [categories,setCategories] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [selectedSizeIds, setSelectedSizeIds] = useState(
+    product?.sizes?.map(s => s.id) || []
+  );
   const [imagePreview, setImagePreview] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-      const fecthData = async () => {
-        const data = await apiService.getCategory();
-        setCategories(data);
+      const fetchData = async () => {
+        const categoryData = await apiService.getCategory();
+        setCategories(categoryData);
+        
+        const sizeData = await apiService.getSizes();
+        setSizes(sizeData);
       }
-      fecthData();
+      fetchData();
   }, []);
+
+  const handleSizeToggle = (sizeId) => {
+    setSelectedSizeIds(prev => 
+      prev.includes(sizeId) 
+        ? prev.filter(id => id !== sizeId)
+        : [...prev, sizeId]
+    );
+  };
 
   console.log('categories', categories)
 
@@ -70,7 +85,7 @@ const UpdateProductForm = ({ product, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({ ...formData, sizeIds: selectedSizeIds });
   };
 
   return (
@@ -168,6 +183,34 @@ const UpdateProductForm = ({ product, onClose, onSubmit }) => {
                         </option>
                     ))}
                 </select>
+              </div>
+
+              {/* Size Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Kích Cỡ Có Sẵn
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map(size => (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={() => handleSizeToggle(size.id)}
+                      className={`px-4 py-2 rounded-lg border-2 font-medium transition-all duration-200 ${
+                        selectedSizeIds.includes(size.id)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {size.sizeName}
+                    </button>
+                  ))}
+                </div>
+                {selectedSizeIds.length > 0 && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Đã chọn: {sizes.filter(s => selectedSizeIds.includes(s.id)).map(s => s.sizeName).join(', ')}
+                  </p>
+                )}
               </div>
             </div>
 

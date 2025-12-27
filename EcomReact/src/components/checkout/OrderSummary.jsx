@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { formatPrice } from '../utils';
 
 export default function OrderSummary({onNext, onBack}) {
   // Dữ liệu mẫu cho đơn hàng
   const orderItems = JSON.parse(localStorage.getItem("cartItemList"));
 
-  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shippingFee = 30;
+  const subtotal = orderItems.reduce((sum, item) => sum + (item.specialPrice * item.quantity), 0);
+  const shippingFee = 30000;
   const total = subtotal + shippingFee;
 
   return (
@@ -17,23 +18,28 @@ export default function OrderSummary({onNext, onBack}) {
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-4 px-2 font-semibold text-gray-700">Products</th>
-              <th className="text-center py-4 px-2 font-semibold text-gray-700">Quantity</th>
-              <th className="text-right py-4 px-2 font-semibold text-gray-700">Price</th>
-              <th className="text-right py-4 px-2 font-semibold text-gray-700">Total</th>
+              <th className="text-left py-4 px-2 font-semibold text-gray-700">Sản phẩm</th>
+              <th className="text-center py-4 px-2 font-semibold text-gray-700">Số lượng</th>
+              <th className="text-right py-4 px-2 font-semibold text-gray-700">Đơn giá</th>
+              <th className="text-right py-4 px-2 font-semibold text-gray-700">Thành tiền</th>
             </tr>
           </thead>
           <tbody>
-            {orderItems.map((item) => (
-              <tr key={item.id} className="border-b border-gray-200">
+            {orderItems.map((item, index) => (
+              <tr key={index} className="border-b border-gray-200">
                 <td className="py-4 px-2">
                   <div className="flex items-center gap-4">
                     <img 
                       src={item.image} 
-                      alt={item.name}
+                      alt={item.productName}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
-                    <span className="text-gray-800 font-medium">{item.name}</span>
+                    <div>
+                      <span className="text-gray-800 font-medium">{item.productName}</span>
+                      {item.selectedSize && (
+                        <span className="block text-sm text-blue-600">Size: {item.selectedSize.sizeName}</span>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="py-4 px-2">
@@ -42,10 +48,10 @@ export default function OrderSummary({onNext, onBack}) {
                   </div>
                 </td>
                 <td className="py-4 px-2 text-right text-gray-700">
-                  ${item.price.toFixed(2)}
+                  {formatPrice(item.specialPrice)}
                 </td>
                 <td className="py-4 px-2 text-right font-semibold text-gray-800">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {formatPrice(item.specialPrice * item.quantity)}
                 </td>
               </tr>
             ))}
@@ -58,15 +64,15 @@ export default function OrderSummary({onNext, onBack}) {
         <div className="max-w-md ml-auto space-y-3">
           <div className="flex justify-between text-gray-700">
             <span>Tạm tính:</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <span className="font-medium">{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between text-gray-700">
             <span>Phí vận chuyển:</span>
-            <span className="font-medium">${shippingFee.toFixed(2)}</span>
+            <span className="font-medium">{formatPrice(shippingFee)}</span>
           </div>
           <div className="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-300">
             <span>Tổng cộng:</span>
-            <span className="text-blue-600">${total.toFixed(2)}</span>
+            <span className="text-blue-600">{formatPrice(total)}</span>
           </div>
         </div>
       </div>

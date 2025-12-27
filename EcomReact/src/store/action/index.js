@@ -50,57 +50,95 @@ export const fetchCategories = (queryString) => async (dispatch) => {
 
 export const addToCart = (data, quantity=1, toast) => async (dispatch, getState) => {
     const {products} = getState().products;
-    const getProduct = products.find((item) => item.productId === data.productId);
+    // Tìm trong Redux store, nếu không có thì dùng data được truyền vào
+    const getProduct = products.find((item) => item.productId === data.productId) || data;
     const listCartItem = localStorage.getItem('cartItemList') ? JSON.parse(localStorage.getItem('cartItemList')) : [];
-    if(listCartItem.some((product) => product.productId === getProduct.productId)){
-        toast.error('This product had already in cart!')
+    
+    // Check if same product with same size already exists in cart
+    const selectedSizeId = data.selectedSize?.id || null;
+    const existingItem = listCartItem.find((product) => 
+        product.productId === data.productId && 
+        (product.selectedSize?.id || null) === selectedSizeId
+    );
+    
+    if(existingItem){
+        const sizeText = data.selectedSize ? ` (Size: ${data.selectedSize.sizeName})` : '';
+        toast.error(`Sản phẩm này${sizeText} đã có trong giỏ hàng!`);
         return;
     }
-    const isQuantityExist = getProduct.quantity >= quantity;
+    
+    // Kiểm tra số lượng tồn kho
+    const stockQuantity = getProduct.quantity || data.quantity;
+    const isQuantityExist = stockQuantity >= quantity;
+    
     if(isQuantityExist){
         try{
-            toast.success(`${data?.productName} added tho the cart`);
-            const productToAdd = { ...getProduct, quantity };
+            const sizeText = data.selectedSize ? ` (Size: ${data.selectedSize.sizeName})` : '';
+            toast.success(`${data?.productName}${sizeText} đã thêm vào giỏ hàng`);
+            const productToAdd = { 
+                ...getProduct, 
+                quantity,
+                selectedSize: data.selectedSize || null 
+            };
             const updatedCart = [...listCartItem, productToAdd];
             localStorage.setItem('cartItemList', JSON.stringify(updatedCart));
             dispatch({type: 'ADD_CART', payload: updatedCart});
-            const reponse = await api.post(`/cart/products/${data.productId}/quantity/${quantity}`);
+            
+            // Build API URL with optional sizeId query parameter
+            let apiUrl = `/cart/products/${data.productId}/quantity/${quantity}`;
+            if (data.selectedSize?.id) {
+                apiUrl += `?sizeId=${data.selectedSize.id}`;
+            }
+            const reponse = await api.post(apiUrl);
         }catch(e){
-            toast.error("error when add to cart", e);
+            toast.error("Lỗi khi thêm vào giỏ hàng", e);
         }
-        
-        
     }
     else{
-        toast.error("Out of stock")
+        toast.error("Hết hàng")
     }
 };
 
 export const increaseCartQuantity = (data, toast, currentQuantity, setCurrentQuantity) => async (dispatch, getState) => {
     const {products} = getState().products;
-    console.log('products', products)
-    const getProduct = products.find((item) => item.productId === data.productId);
+    // Tìm trong Redux store, nếu không có thì dùng data được truyền vào
+    const getProduct = products.find((item) => item.productId === data.productId) || data;
     const listCartItem = JSON.parse(localStorage.getItem('cartItemList'));
-    const isQuantityExist = getProduct.quantity >= currentQuantity + 1;
+    
+    // Lấy số lượng tồn kho từ product hoặc từ data
+    const stockQuantity = getProduct.quantity || data.quantity;
+    const isQuantityExist = stockQuantity >= currentQuantity + 1;
 
     if(isQuantityExist){
         const newQuantiy = currentQuantity + 1;
         setCurrentQuantity(newQuantiy);
+        const selectedSizeId = data.selectedSize?.id || null;
         listCartItem.map((product) => {
-            if(getProduct.productId === product.productId){
+            if(data.productId === product.productId && 
+               (product.selectedSize?.id || null) === selectedSizeId){
                 product.quantity = newQuantiy;
             }
         });
         localStorage.setItem('cartItemList', JSON.stringify(listCartItem));
-        const response = await api.post(`/card/products/${getProduct.productId}/quantity/add`);
+        
+        // Build API URL with optional sizeId query parameter
+        let apiUrl = `/card/products/${data.productId}/quantity/add`;
+        if (data.selectedSize?.id) {
+            apiUrl += `?sizeId=${data.selectedSize.id}`;
+        }
+        const response = await api.post(apiUrl);
     }
     else{
         toast.error("Quantity reach to limit")
     }
 }
 
-export const descreaseCartQuantity = async (productId) =>{
-    const response = await api.post(`/card/products/${productId}/quantity/delete`)
+export const descreaseCartQuantity = async (productId, sizeId = null) =>{
+    let apiUrl = `/card/products/${productId}/quantity/delete`;
+    if (sizeId) {
+        apiUrl += `?sizeId=${sizeId}`;
+    }
+    const response = await api.post(apiUrl);
 }
 
 export const authenticateSignInUser = (sendData, toast, reset, navigate, setLoader) => async (dispatch) =>{
@@ -149,13 +187,21 @@ export const fetchCart = async () => {
     
 }
 
-export const deleteProductFromCart = async (productId) => {
+export const deleteProductFromCart = async (productId, sizeId = null) => {
     const cartId = localStorage.getItem('cartId');
     try{
         const listCartItem = JSON.parse(localStorage.getItem('cartItemList'));
-        const newListCartItem = listCartItem.filter(product => product.productId !== productId);
+        const newListCartItem = listCartItem.filter(product => 
+            !(product.productId === productId && 
+              (product.selectedSize?.id || null) === sizeId)
+        );
         localStorage.setItem('cartItemList', JSON.stringify(newListCartItem));
-        const response = await api.delete(`/carts/${cartId}/product/${productId}`);
+        
+        let apiUrl = `/carts/${cartId}/product/${productId}`;
+        if (sizeId) {
+            apiUrl += `?sizeId=${sizeId}`;
+        }
+        const response = await api.delete(apiUrl);
     }catch(error){
         console.log("error from delete product", error)
     }

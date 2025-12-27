@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import { FaAddressBook } from 'react-icons/fa';
 import { AddressInforModal } from "./AddressInforModal";
 import { AddAddressForm } from "./AddAddressForm";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import AddressSelector from "./AddressCart";
+import { fetchLocationsAddress } from "../../store/reducers/LocationReducer";
 
 const AddressInfor = ({onNext}) => {
     
@@ -14,10 +15,17 @@ const AddressInfor = ({onNext}) => {
     const isLoading = false;
     const [openAddressModal, setOpenAddressModal] = useState(false);
     const [selectedAddress, setAddressSelected] = useState("");
+    const dispatch = useDispatch();
 
     const addNewAddressHandle = () => {
         setAddressSelected("");
         setOpenAddressModal(true)
+    };
+
+    // Xử lý khi thêm địa chỉ thành công
+    const handleAddAddressSuccess = () => {
+        setOpenAddressModal(false); // Đóng modal
+        dispatch(fetchLocationsAddress()); // Refresh danh sách địa chỉ từ API
     };
 
     return (
@@ -26,11 +34,11 @@ const AddressInfor = ({onNext}) => {
                 <div className="p-6 rounded-lg max-w-md mx-auto flex  flex-col items-center justify-center">
                     <FaAddressBook size={50}  className="text-gray-500 mb-4"/>
                     <h1 className="mb-2 text-slate-900 font-semibold text-center text-2xl ">
-                        No Address Added Yet
+                        Chưa có địa chỉ nào
                     </h1>
 
                     <p className="mb-6 text-slate-900 text-center">
-                        Please add your address to  complete purchase
+                        Vui lòng thêm địa chỉ để hoàn tất đơn hàng
                     </p>
 
                     <button className="px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-all"
@@ -39,9 +47,7 @@ const AddressInfor = ({onNext}) => {
                     </button>
                 </div>
             ) : (
-                <div className="relative p-6 rounded-lg max-w-md mx-auto">
-                    <h1 className="text-slate-800 text-center font-bold text-2xl ">Select Address</h1>
-                    
+                <div className="relative p-6 rounded-lg max-w-lg mx-auto">
                     {isLoading ? (
                         <div className="px-4 py-8">
                             <Skeleton/>
@@ -55,7 +61,7 @@ const AddressInfor = ({onNext}) => {
             )}
 
             <AddressInforModal setIsOpen={setOpenAddressModal} isOpen={openAddressModal}>
-                <AddAddressForm/>
+                <AddAddressForm onSuccess={handleAddAddressSuccess} />
             </AddressInforModal>
         </div>
     )

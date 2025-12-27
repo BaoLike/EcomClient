@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Truck, CreditCard } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 export default function PaymentResult() {
   const [paymentInfo, setPaymentInfo] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
-    // Lấy query params từ URL
+    // Kiểm tra nếu có state từ navigate (cho COD)
+    if (location.state) {
+      setPaymentInfo({
+        status: location.state.status,
+        orderId: location.state.orderId,
+        amount: location.state.amount,
+        paymentMethod: location.state.paymentMethod,
+        message: location.state.message
+      });
+      return;
+    }
+
+    // Lấy query params từ URL (cho VNPay)
     const urlParams = new URLSearchParams(window.location.search);
     
     const info = {
@@ -17,11 +31,12 @@ export default function PaymentResult() {
       payDate: urlParams.get('payDate'),
       orderInfo: urlParams.get('orderInfo'),
       responseCode: urlParams.get('responseCode'),
-      message: urlParams.get('message')
+      message: urlParams.get('message'),
+      paymentMethod: 'VNPAY'
     };
     
     setPaymentInfo(info);
-  }, []);
+  }, [location]);
 
   if (!paymentInfo) {
     return (
@@ -77,18 +92,25 @@ export default function PaymentResult() {
           <h1 className={`text-3xl font-bold mb-2 ${
             isSuccess ? 'text-green-600' : 'text-red-600'
           }`}>
-            {isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại'}
+            {isSuccess 
+              ? (paymentInfo.paymentMethod === 'COD' ? 'Đặt hàng thành công!' : 'Thanh toán thành công!')
+              : (paymentInfo.paymentMethod === 'COD' ? 'Đặt hàng thất bại' : 'Thanh toán thất bại')
+            }
           </h1>
           
           {paymentInfo.message && (
             <p className="text-gray-600">{decodeURIComponent(paymentInfo.message)}</p>
+          )}
+          
+          {isSuccess && paymentInfo.paymentMethod === 'COD' && !paymentInfo.message && (
+            <p className="text-gray-600">Đơn hàng của bạn đã được tiếp nhận. Bạn sẽ thanh toán khi nhận hàng.</p>
           )}
         </div>
 
         {/* Payment Details */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4 pb-2 border-b">
-            Thông tin giao dịch
+            Thông tin đơn hàng
           </h2>
           
           <div className="space-y-3">
@@ -101,12 +123,30 @@ export default function PaymentResult() {
             
             {paymentInfo.amount && (
               <div className="flex justify-between py-2">
-                <span className="text-gray-600">Số tiền:</span>
+                <span className="text-gray-600">Tổng tiền:</span>
                 <span className="font-semibold text-lg text-blue-600">
                   {formatAmount(paymentInfo.amount)}
                 </span>
               </div>
             )}
+
+            {/* Phương thức thanh toán */}
+            <div className="flex justify-between py-2">
+              <span className="text-gray-600">Phương thức thanh toán:</span>
+              <span className="font-semibold flex items-center gap-2">
+                {paymentInfo.paymentMethod === 'COD' ? (
+                  <>
+                    <Truck className="w-5 h-5 text-orange-500" />
+                    <span className="text-orange-600">Thanh toán khi nhận hàng</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 text-blue-500" />
+                    <span className="text-blue-600">VNPay</span>
+                  </>
+                )}
+              </span>
+            </div>
             
             {paymentInfo.transactionNo && (
               <div className="flex justify-between py-2">
@@ -144,6 +184,21 @@ export default function PaymentResult() {
             )}
           </div>
         </div>
+
+        {/* COD Notice */}
+        {isSuccess && paymentInfo.paymentMethod === 'COD' && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Truck className="w-6 h-6 text-orange-500 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-orange-800">Thanh toán khi nhận hàng</h3>
+                <p className="text-orange-700 text-sm mt-1">
+                  Đơn hàng của bạn đang được xử lý. Vui lòng chuẩn bị {formatAmount(paymentInfo.amount)} để thanh toán khi nhận hàng.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-4 justify-center">

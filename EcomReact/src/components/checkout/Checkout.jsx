@@ -12,9 +12,9 @@ const Checkout = () => {
 
 
     const steps = [
-        "Addtress",
-        "Order Summary",
-        "Payment Method",
+        "Địa chỉ",
+        "Đơn hàng",
+        "Thanh toán",
     ];
 
 
